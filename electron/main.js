@@ -1,17 +1,12 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 const http = require('http');
 const fs = require('fs');
-const NODE_ENV = process.env.NODE_ENV
+const isDev = process.env.NODE_ENV === 'development';
 
 ipcMain.on("window-new", (event, data = { videoUrl: '', videoName: '' }) => {
   console.log(data, '==data');
-
   if (!data.videoUrl || !data.videoName) return;
-
-  // 保存下载的视频的本地路径
-  const downloadPath = path.join(app.getPath('downloads'), data.videoName);
-  const fileStream = fs.createWriteStream(downloadPath);
 
   http.get(data.videoUrl, (response) => {
     const contentLength = parseInt(response.headers['content-length'], 10);
@@ -24,8 +19,10 @@ ipcMain.on("window-new", (event, data = { videoUrl: '', videoName: '' }) => {
       return
     }
 
+    // 保存下载的视频的本地路径
+    const downloadPath = path.join(app.getPath('downloads'), data.videoName);
+    const fileStream = fs.createWriteStream(downloadPath);
     response.pipe(fileStream);
-
     response.on('end', () => {
       fileStream.close();
       console.log('视频下载完成');
@@ -43,10 +40,18 @@ ipcMain.on("window-new", (event, data = { videoUrl: '', videoName: '' }) => {
   });
 });
 
+ipcMain.on("open-file", () => {
+  openDownloadFolder();
+})
+
+function openDownloadFolder() {
+  shell.openPath(app.getPath('downloads'));
+}
+
 function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 750,
+    height: 800,
     titlestring: '下载',
     icon: path.join(__dirname, 'icon.png'), // 设置窗口图标
     webPreferences: {
@@ -55,8 +60,13 @@ function createWindow() {
       contextIsolation: false
     }
   })
-  console.log(NODE_ENV, '====NODE_ENV')
-  win.loadURL('http://127.0.0.1:3304/')
+
+  console.log(isDev, '====isDev====')
+  win.loadURL(
+    isDev
+      ? 'http://localhost:3304/'
+      : `file://${path.join(__dirname, '../dist/index.html')}`
+  );
 }
 
 app.whenReady().then(() => {

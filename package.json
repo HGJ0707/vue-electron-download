@@ -5,13 +5,14 @@
   "type": "commonjs",
   "main": "electron/main.js",
   "scripts": {
-    "electron": "concurrently cross-env NODE_ENV=production vite \"electron .\"",
-    "electron:build": "vite build && electron-builder",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron": "concurrently vite \"cross-env NODE_ENV=development electron .\"",
+    "electron:build": "vite build && electron-builder"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^6.1.0",
     "ant-design-vue": "4.x",
     "vue": "^3.3.4"
   },
@@ -23,5 +24,25 @@
     "electron": "^26.0.0",
     "electron-builder": "^24.6.3",
     "vite": "^4.4.5"
+  },
+  "build": {
+    "appId": "com.my-website.my-app",
+    "productName": "VED",
+    "copyright": "Copyright © 2023",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist_electron"
+    }
   }
 }
