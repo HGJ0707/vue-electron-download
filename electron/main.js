@@ -87,12 +87,12 @@ function createWindow() {
     }
   })
 
-  console.log(isDev, '====isDev====')
-  win.loadURL(
-    isDev
-      ? 'http://localhost:3304/'
-      : `file://${path.join(__dirname, '../dist/index.html')}`
-  );
+  if (isDev) {
+    win.loadURL('http://localhost:3304/');
+    win.webContents.openDevTools();
+  } else {
+    win.loadURL(`file://${path.join(__dirname, '../dist/index.html')}`);
+  }
 
   //  创建菜单对象
   const menu = Menu.buildFromTemplate(myMenuTemplate);
