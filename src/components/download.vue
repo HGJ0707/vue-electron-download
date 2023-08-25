@@ -1,14 +1,19 @@
 <template>
   <div class="box">
-    <a-alert message="视频保存在电脑的“下载”目录下" type="info" show-icon >
+    <a-alert message="视频保存在电脑的“下载”目录下" type="info" show-icon>
       <template #action>
         <a-button size="small" @click="openLocalFile">打开下载目录</a-button>
       </template>
     </a-alert>
     <div class="form-box">
-      <a-form layout="inline" style="justify-content: space-between;">
+      <a-form layout="inline" style="justify-content: space-between">
         <a-form-item label="设置保存前缀">
-          <a-input v-model:value="savePrefix" :maxlength="10" allowClear showCount />
+          <a-input
+            v-model:value="savePrefix"
+            :maxlength="10"
+            allowClear
+            showCount
+          />
         </a-form-item>
         <div class="btn-box">
           <a-button type="primary" danger @click="pasteParams">
@@ -19,7 +24,7 @@
         </div>
       </a-form>
     </div>
-    
+
     <a-tabs v-model:activeKey="activeKey">
       <a-tab-pane key="1" tab="下载参数">
         <a-textarea
@@ -32,12 +37,14 @@
         />
       </a-tab-pane>
       <a-tab-pane key="2" tab="相关评论" force-render>
-        <a-list :data-source="descs" :locale="{emptyText: '暂无内容'	}">
+        <a-list :data-source="descs" :locale="{ emptyText: '暂无内容' }">
           <template #renderItem="{ item, index }">
             <a-list-item>
-              <a-textarea :id="`inputDom${index}`" :value="item" /> 
+              <a-textarea :id="`inputDom${index}`" :value="item" />
               <template #actions>
-                <a key="list-loadmore-more"><CopyOutlined @click="copyComment(index)" /></a>
+                <a key="list-loadmore-more"
+                  ><CopyOutlined @click="copyComment(index)"
+                /></a>
               </template>
             </a-list-item>
           </template>
@@ -51,45 +58,44 @@
 <script setup>
 import { ref } from "vue";
 import { message } from "ant-design-vue";
-import {
-  TagOutlined,
-  CopyOutlined
-} from '@ant-design/icons-vue';
+import { CopyOutlined } from "@ant-design/icons-vue";
 import { useIpcRenderer } from "@vueuse/electron";
 
 const ipcRenderer = useIpcRenderer();
-const savePrefix = ref('下载');
+const savePrefix = ref("下载");
 const params = ref("");
 const descs = ref([]);
-const activeKey = ref('1');
+const activeKey = ref("1");
 
+// 通知主进程打开系统下载文件夹
 const openLocalFile = () => {
-  ipcRenderer.send("open-file"); // 向主进程通信
+  ipcRenderer.send("open-file");
 };
 
+// 粘贴功能
 const pasteParams = () => {
-  const dom = document.getElementById('ParamsTextArea');
-    // 粘贴内容到文本框
-    dom.value = '';
-    dom.focus();
-    document.execCommand('paste');
+  const dom = document.getElementById("ParamsTextArea");
+  dom.value = "";
+  dom.focus();
+  document.execCommand("paste");
 };
 
+// 复制功能
 const copyComment = (index) => {
   const inputElement = document.getElementById(`inputDom${index}`);
   inputElement.select();
   inputElement.setSelectionRange(0, 99999); // 为了兼容不同浏览器
-  document.execCommand('copy');
+  document.execCommand("copy");
   inputElement.setSelectionRange(0, 0);
-  message.success('复制成功')
-}
+  message.success("复制成功");
+};
 
 // 解析参数
-async function parseParams(type='video') {
+async function parseParams(type = "video") {
   try {
     const values = [];
     const parsedJson = JSON.parse(params.value);
-    if (type === 'video') {
+    if (type === "video") {
       parsedJson?.forEach((videoItem) => {
         values.push(videoItem?.item?.video?.play_addr?.url_list);
       });
@@ -126,6 +132,26 @@ function notificationMain(urls) {
   });
 }
 
+/**
+ * 主函数
+ * @param {*} index
+ */
+const download = async (index = 0) => {
+  if (!params.value) {
+    message.error("请输入参数");
+    return;
+  }
+
+  const videoUrls = await parseParams("video");
+  descs.value = await parseParams("desc");
+
+  const urls = await getDownloadUrl(videoUrls, index);
+  if (urls?.length < 1) {
+    message.error("获取视频url错误");
+  }
+  notificationMain(urls);
+};
+
 // 接收主进程的下载状态通知进行提示
 ipcRenderer.on("download-video-status", function (event, info) {
   console.log(info?.fileStream, "==fileStream");
@@ -135,24 +161,6 @@ ipcRenderer.on("download-video-status", function (event, info) {
     message.error(`${info.name}下载失败，请尝试换一个下载通道`);
   }
 });
-
-const download = async (index = 0) => {
-  if (!params.value) {
-    message.error("请输入参数");
-    return;
-  }
-
-  const videoUrls = await parseParams('video');
-  descs.value = await parseParams('desc');
-  console.log(descs, '====descs')
-  console.log(videoUrls, "====videoUrls", index, "===index");
-
-  const urls = await getDownloadUrl(videoUrls, index);
-  if (urls?.length < 1) {
-    message.error("获取视频url错误");
-  }
-  notificationMain(urls);
-};
 </script>
 
 <style>

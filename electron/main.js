@@ -1,9 +1,33 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, shell, Menu } = require('electron')
 const path = require('path')
 const http = require('http');
 const fs = require('fs');
 const isDev = process.env.NODE_ENV === 'development';
 
+// 菜单
+const myMenuTemplate = [
+  {
+    label: '退出',
+    role: 'quit'
+  },
+  {
+    label: '全屏',
+    role: 'togglefullscreen'
+  },
+  {
+    label: '重新加载',
+    role: 'reload'
+  },
+
+  {
+    label: '开发者工具',
+    role: 'toggledevtools'
+  },
+];
+
+/**
+ * 监听视频下载
+ */
 ipcMain.on("window-new", (event, data = { videoUrl: '', videoName: '' }) => {
   console.log(data, '==data');
   if (!data.videoUrl || !data.videoName) return;
@@ -40,14 +64,16 @@ ipcMain.on("window-new", (event, data = { videoUrl: '', videoName: '' }) => {
   });
 });
 
+/**
+ * 监听打开本地下载文件夹
+ */
 ipcMain.on("open-file", () => {
-  openDownloadFolder();
+  shell.openPath(app.getPath('downloads'));
 })
 
-function openDownloadFolder() {
-  shell.openPath(app.getPath('downloads'));
-}
-
+/**
+ * 创建窗口
+ */
 function createWindow() {
   const win = new BrowserWindow({
     width: 750,
@@ -67,6 +93,11 @@ function createWindow() {
       ? 'http://localhost:3304/'
       : `file://${path.join(__dirname, '../dist/index.html')}`
   );
+
+  //  创建菜单对象
+  const menu = Menu.buildFromTemplate(myMenuTemplate);
+  //  设置应用菜单
+  Menu.setApplicationMenu(menu);
 }
 
 app.whenReady().then(() => {

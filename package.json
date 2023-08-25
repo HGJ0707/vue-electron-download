@@ -23,18 +23,26 @@
     "cross-env": "^7.0.3",
     "electron": "^26.0.0",
     "electron-builder": "^24.6.3",
+    "unplugin-vue-components": "^0.25.1",
     "vite": "^4.4.5"
   },
   "build": {
+    "productName": "VideoDownload",
     "appId": "com.my-website.my-app",
-    "productName": "VED",
     "copyright": "Copyright © 2023",
     "mac": {
       "category": "public.app-category.utilities"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/icons/icon.ico"
     },
     "files": [
       "dist/**/*",
