@@ -1,7 +1,18 @@
-# Vue 3 + Vite
+# vue-electron-download
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+解析视频接口参数，进行视频下载
 
-## Recommended IDE Setup
+## 技术栈
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+Vue 3 + Vite + Electron + nodeJS + AntDesign
+
+
+## 相关命令
+```
+pnpm install
+
+pnpm run electron
+
+pnpm run electron:build
+```
+
