@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, Menu } = require('electron')
+const axios = require('axios');
 const path = require('path')
 const http = require('http');
 const fs = require('fs');
@@ -24,6 +25,29 @@ const myMenuTemplate = [
     role: 'toggledevtools'
   },
 ];
+
+/**
+ * 监听调用接口
+ */
+ipcMain.on("handle-get-video-link", (event, data = { videoLinkUrl: '', videoLinkId: ''}) => {
+  const headers = {
+    'Cookie': 'odin_tt=19b817361b183e1a4a1d0087a072d33d8b8c870b1ae58e3d66153497bc9103eca5e5aea57a1a0ee1365e435c952f4e4a; ttwid=1%7CHrYZhyW9fGBBXIwdy9Ax5_aSZMgMPHNPdyV0CRx6nMk%7C1710762808%7Cc3ddaa3ac6839cfcc4aa4ba046db71018b086863301f72cbdd2bda1573afba8f',
+    'referer' : `https://www.douyin.com/video/${data.videoLinkId}`,
+  };
+  axios.get(data.videoLinkUrl, {
+    headers,
+  })
+    .then(response => {
+      // 将数据发送到渲染进程
+      const params2 = JSON.stringify([{
+        item: response.data.aweme_detail
+      }]);
+      event.sender.send('download-video-params', params2);
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+});
 
 /**
  * 监听视频下载
@@ -83,6 +107,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
+      webSecurity: false,
       contextIsolation: false
     }
   })
